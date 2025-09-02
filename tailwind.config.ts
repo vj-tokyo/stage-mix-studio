@@ -52,15 +52,19 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+				'channel-a': {
+					DEFAULT: 'hsl(var(--channel-a))',
+					foreground: 'hsl(var(--channel-a-foreground))',
+					muted: 'hsl(var(--channel-a-muted))'
+				},
+				'channel-b': {
+					DEFAULT: 'hsl(var(--channel-b))',
+					foreground: 'hsl(var(--channel-b-foreground))',
+					muted: 'hsl(var(--channel-b-muted))'
+				},
+				master: {
+					DEFAULT: 'hsl(var(--master))',
+					foreground: 'hsl(var(--master-foreground))'
 				}
 			},
 			borderRadius: {
