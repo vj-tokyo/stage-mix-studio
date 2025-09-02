@@ -14,7 +14,7 @@ interface LayerControlsProps {
   channelColor: 'channel-a' | 'channel-b';
 }
 
-const blendModes: BlendMode[] = ['normal', 'multiply', 'screen', 'overlay', 'lighten', 'darken'];
+const blendModes: BlendMode[] = ['normal', 'multiply', 'screen', 'overlay', 'lighten', 'darken', 'difference'];
 
 export const LayerControls: React.FC<LayerControlsProps> = ({ 
   channelId, 

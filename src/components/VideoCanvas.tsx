@@ -80,6 +80,9 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
       case 'overlay':
         materialProps.opacity = layer.opacity * channelMix;
         break;
+      case 'difference':
+        materialProps.opacity = (layer.opacity * channelMix) * 0.9;
+        break;
       default:
         materialProps.opacity = layer.opacity * channelMix;
     }
@@ -124,7 +127,7 @@ const Scene: React.FC = () => {
           key={`A-${layer.id}`}
           layer={layer}
           channelMix={channelAMix}
-          position={[-0.1 * index, 0.1 * index, index * 0.01]}
+          position={[0, 0, index * 0.001]}
         />
       ))}
       
@@ -134,7 +137,7 @@ const Scene: React.FC = () => {
           key={`B-${layer.id}`}
           layer={layer}
           channelMix={channelBMix}
-          position={[0.1 * index, -0.1 * index, (index + 3) * 0.01]}
+          position={[0, 0, (index + 3) * 0.001]}
         />
       ))}
     </>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type BlendMode = 'normal' | 'multiply' | 'screen' | 'overlay' | 'lighten' | 'darken';
+export type BlendMode = 'normal' | 'multiply' | 'screen' | 'overlay' | 'lighten' | 'darken' | 'difference';
 
 export interface VideoLayer {
   id: string;
