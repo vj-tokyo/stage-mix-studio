@@ -59,32 +59,44 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
       return new THREE.MeshBasicMaterial({ 
         color: 0x333333,
         transparent: true,
-        opacity: layer.opacity * channelMix
+        opacity: Math.max(0.1, layer.opacity * channelMix)
       });
+    }
+
+    // Base opacity calculation - ensure full opacity when channel is fully visible
+    let finalOpacity = layer.opacity;
+    
+    // Only apply channel mix if it's not at the extremes
+    if (channelMix > 0.01 && channelMix < 0.99) {
+      finalOpacity *= channelMix;
+    } else if (channelMix <= 0.01) {
+      finalOpacity = 0;
     }
 
     const materialProps: any = {
       map: textureRef.current,
       transparent: true,
-      opacity: layer.opacity * channelMix,
+      opacity: finalOpacity,
     };
 
-    // Apply blend mode through opacity and color mixing instead of Three.js blending
+    // Apply blend mode adjustments more subtly
     switch (layer.blendMode) {
       case 'multiply':
-        materialProps.opacity = (layer.opacity * channelMix) * 0.8;
+        // Keep full opacity for multiply
         break;
       case 'screen':
-        materialProps.opacity = (layer.opacity * channelMix) * 1.2;
+        // Screen mode can be brighter
+        materialProps.opacity = Math.min(1, finalOpacity * 1.1);
         break;
       case 'overlay':
-        materialProps.opacity = layer.opacity * channelMix;
+        // Overlay keeps original opacity
         break;
       case 'difference':
-        materialProps.opacity = (layer.opacity * channelMix) * 0.9;
+        // Difference mode keeps full opacity
         break;
       default:
-        materialProps.opacity = layer.opacity * channelMix;
+        // Normal mode keeps original opacity
+        break;
     }
 
     return new THREE.MeshBasicMaterial(materialProps);
@@ -119,7 +131,13 @@ const Scene: React.FC = () => {
 
   return (
     <>
-      <ambientLight intensity={0.5} />
+      {/* Black background plane */}
+      <mesh position={[0, 0, -1]}>
+        <planeGeometry args={[8, 4.5]} />
+        <meshBasicMaterial color={0x000000} />
+      </mesh>
+      
+      <ambientLight intensity={1} />
       
       {/* Channel A Layers */}
       {channels.A.layers.map((layer, index) => (
