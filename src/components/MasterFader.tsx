@@ -2,10 +2,20 @@ import { motion } from 'framer-motion';
 import { Mic, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { useMixerStore } from '@/store/mixerStore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMixerStore, BlendMode } from '@/store/mixerStore';
+
+const blendModes: BlendMode[] = ['normal', 'multiply', 'screen', 'overlay', 'lighten', 'darken', 'difference'];
 
 export const MasterFader: React.FC = () => {
-  const { masterFader, isRecording, updateMasterFader, toggleRecording } = useMixerStore();
+  const { 
+    masterFader, 
+    masterBlendMode, 
+    isRecording, 
+    updateMasterFader, 
+    updateMasterBlendMode, 
+    toggleRecording 
+  } = useMixerStore();
 
   const handleFaderChange = (values: number[]) => {
     updateMasterFader(values[0]);
@@ -78,6 +88,25 @@ export const MasterFader: React.FC = () => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Master Blend Mode */}
+      <div className="w-full max-w-sm">
+        <label className="block text-sm font-medium text-master mb-2">
+          Master Blend Mode
+        </label>
+        <Select value={masterBlendMode} onValueChange={updateMasterBlendMode}>
+          <SelectTrigger className="w-full bg-card border-master/30 text-foreground">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {blendModes.map((mode) => (
+              <SelectItem key={mode} value={mode} className="capitalize">
+                {mode}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Recording Control */}

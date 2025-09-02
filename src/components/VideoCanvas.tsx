@@ -63,36 +63,40 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
       });
     }
 
-    // Base opacity calculation - ensure full opacity when channel is fully visible
+    // Fix opacity calculation - don't double-apply transparency
     let finalOpacity = layer.opacity;
     
-    // Only apply channel mix if it's not at the extremes
-    if (channelMix > 0.01 && channelMix < 0.99) {
-      finalOpacity *= channelMix;
-    } else if (channelMix <= 0.01) {
+    // Apply channel mix properly - if channelMix is 0, layer should be invisible
+    if (channelMix <= 0.01) {
       finalOpacity = 0;
+    } else if (channelMix >= 0.99) {
+      // Full opacity from this channel
+      finalOpacity = layer.opacity;
+    } else {
+      // Proportional mixing
+      finalOpacity = layer.opacity * channelMix;
     }
 
     const materialProps: any = {
       map: textureRef.current,
-      transparent: true,
+      transparent: finalOpacity < 1,
       opacity: finalOpacity,
     };
 
     // Apply blend mode adjustments more subtly
     switch (layer.blendMode) {
       case 'multiply':
-        // Keep full opacity for multiply
+        // Keep original opacity for multiply
         break;
       case 'screen':
-        // Screen mode can be brighter
-        materialProps.opacity = Math.min(1, finalOpacity * 1.1);
+        // Screen mode can be slightly brighter
+        materialProps.opacity = Math.min(1, finalOpacity * 1.05);
         break;
       case 'overlay':
         // Overlay keeps original opacity
         break;
       case 'difference':
-        // Difference mode keeps full opacity
+        // Difference mode keeps original opacity
         break;
       default:
         // Normal mode keeps original opacity
@@ -126,8 +130,9 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
 const Scene: React.FC = () => {
   const { channels, masterFader } = useMixerStore();
   
-  const channelAMix = 1 - masterFader;
-  const channelBMix = masterFader;
+  // Fix opacity calculation - when fader is 0 show only A, when 1 show only B
+  const channelAMix = masterFader === 0 ? 1 : (1 - masterFader);
+  const channelBMix = masterFader === 1 ? 1 : masterFader;
 
   return (
     <>
