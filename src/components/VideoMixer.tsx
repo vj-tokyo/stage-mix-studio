@@ -2,8 +2,15 @@ import { motion } from 'framer-motion';
 import { VideoCanvas } from './VideoCanvas';
 import { ChannelControls } from './ChannelControls';
 import { MasterFader } from './MasterFader';
+import { VideoLibrary } from './VideoLibrary';
+import { OutputWindow } from './OutputWindow';
+import { PerformanceMonitor } from './PerformanceMonitor';
+import { RecordingControls } from './RecordingControls';
+import { useMixerStore } from '@/store/mixerStore';
 
 export const VideoMixer: React.FC = () => {
+  const { updateLayerSource } = useMixerStore();
+
   return (
     <div className="min-h-screen bg-background p-4">
       <motion.div 
@@ -14,7 +21,7 @@ export const VideoMixer: React.FC = () => {
       >
         {/* Header */}
         <motion.header 
-          className="text-center mb-8"
+          className="text-center mb-6"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -22,9 +29,15 @@ export const VideoMixer: React.FC = () => {
           <h1 className="text-4xl font-bold text-primary mb-2">
             VJ VIDEO MIXER
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Professional dual-channel video mixing interface
           </p>
+          
+          {/* Header Controls */}
+          <div className="flex justify-center gap-4 mb-4">
+            <VideoLibrary onSelectVideo={(src) => console.log('Video selected:', src)} />
+            <PerformanceMonitor />
+          </div>
         </motion.header>
 
         {/* Main Layout */}
@@ -32,7 +45,7 @@ export const VideoMixer: React.FC = () => {
           
           {/* Preview Area - Full width on mobile, spans 2 cols on desktop */}
           <motion.div 
-            className="xl:col-span-2 order-1"
+            className="xl:col-span-2 order-1 space-y-4"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.1 }}
@@ -44,6 +57,12 @@ export const VideoMixer: React.FC = () => {
               <div className="aspect-video">
                 <VideoCanvas />
               </div>
+            </div>
+            
+            {/* Output and Recording Controls */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <OutputWindow />
+              <RecordingControls />
             </div>
           </motion.div>
 

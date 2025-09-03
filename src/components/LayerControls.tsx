@@ -1,6 +1,6 @@
 import { useState, useRef, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, Upload, Link } from 'lucide-react';
+import { Play, Pause, Upload, Link, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,8 @@ export const LayerControls: React.FC<LayerControlsProps> = ({
     updateLayerSource, 
     updateLayerOpacity, 
     updateLayerBlendMode, 
+    updateLayerVolume,
+    toggleLayerMute,
     toggleLayerPlayback 
   } = useMixerStore();
 
@@ -50,6 +52,10 @@ export const LayerControls: React.FC<LayerControlsProps> = ({
 
   const handleOpacityChange = (values: number[]) => {
     updateLayerOpacity(channelId, layer.id, values[0]);
+  };
+
+  const handleVolumeChange = (values: number[]) => {
+    updateLayerVolume(channelId, layer.id, values[0]);
   };
 
   const handleBlendModeChange = (value: BlendMode) => {
@@ -77,6 +83,16 @@ export const LayerControls: React.FC<LayerControlsProps> = ({
             className={`${layer.isPlaying ? `bg-${channelColor}/20 border-${channelColor}` : ''}`}
           >
             {layer.isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleLayerMute(channelId, layer.id)}
+            disabled={!layer.videoSrc}
+            className={`${layer.isMuted ? 'bg-destructive/20 border-destructive' : ''}`}
+          >
+            {layer.isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
           </Button>
         </div>
       </div>
@@ -137,6 +153,25 @@ export const LayerControls: React.FC<LayerControlsProps> = ({
             />
           </div>
         )}
+      </div>
+
+      {/* Volume Control */}
+      <div className="space-y-2 mb-4">
+        <div className="flex justify-between items-center">
+          <Label className="text-xs">Volume</Label>
+          <span className={`text-xs text-${channelColor}`}>
+            {layer.isMuted ? 'MUTED' : `${Math.round(layer.volume * 100)}%`}
+          </span>
+        </div>
+        <Slider
+          value={[layer.volume]}
+          onValueChange={handleVolumeChange}
+          max={1}
+          min={0}
+          step={0.01}
+          disabled={layer.isMuted}
+          className="w-full"
+        />
       </div>
 
       {/* Opacity Control */}
