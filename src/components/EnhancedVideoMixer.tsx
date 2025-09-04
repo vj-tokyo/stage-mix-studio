@@ -35,11 +35,11 @@ export const EnhancedVideoMixer: React.FC = () => {
 
       {/* Main Content - 3 Column Layout */}
       <div className="max-w-7xl mx-auto p-4">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[calc(100vh-200px)] max-h-[calc(100vh-200px)]">
           
           {/* Left Column - Channel A */}
           <motion.div 
-            className="xl:col-span-3 space-y-4"
+            className="lg:col-span-3 space-y-4"
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -62,12 +62,12 @@ export const EnhancedVideoMixer: React.FC = () => {
 
           {/* Center Column - Main Preview */}
           <motion.div 
-            className="xl:col-span-6 space-y-4"
+            className="lg:col-span-6 space-y-4"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <div className="bg-card/50 backdrop-blur-sm rounded-lg border border-border/50 p-4 h-full flex flex-col">
+            <div className="bg-card/50 backdrop-blur-sm rounded-lg border border-border/50 p-4 flex flex-col h-full">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-primary">MAIN OUTPUT</h2>
                 <div className="flex items-center gap-2">
@@ -77,17 +77,15 @@ export const EnhancedVideoMixer: React.FC = () => {
               </div>
               
               {/* Main Preview Canvas */}
-              <div className="flex-1 min-h-0">
-                <div className="aspect-video h-full">
-                  <VideoCanvas />
-                </div>
+              <div className="flex-1 min-h-0 max-h-96">
+                <VideoCanvas />
               </div>
             </div>
           </motion.div>
 
           {/* Right Column - Channel B */}
           <motion.div 
-            className="xl:col-span-3 space-y-4"
+            className="lg:col-span-3 space-y-4"
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
