@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { useMixerStore, VideoLayer, BlendMode } from '@/store/mixerStore';
+import { TimelineControls } from './TimelineControls';
 
 interface LayerControlsProps {
   channelId: 'A' | 'B';
   layer: VideoLayer;
-  channelColor: 'channel-a' | 'channel-b';
+  channelColor: 'cyan' | 'magenta';
 }
 
 const blendModes: BlendMode[] = ['normal', 'multiply', 'screen', 'overlay', 'lighten', 'darken', 'difference'];
@@ -208,6 +209,15 @@ export const LayerControls: React.FC<LayerControlsProps> = ({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Timeline Controls */}
+      {layer.videoSrc && (
+        <TimelineControls 
+          channelId={channelId}
+          layer={layer}
+          channelColor={channelColor}
+        />
+      )}
     </motion.div>
   );
 };

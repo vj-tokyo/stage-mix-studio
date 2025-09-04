@@ -14,7 +14,7 @@ export const ChannelControls: React.FC<ChannelControlsProps> = ({ channelId }) =
   const { channels, updateChannelBlendMode } = useMixerStore();
   const channel = channels[channelId];
   
-  const channelColor = channelId === 'A' ? 'channel-a' : 'channel-b';
+  const channelColor = channelId === 'A' ? 'cyan' : 'magenta';
   const glowClass = channelId === 'A' ? 'channel-a-glow' : 'channel-b-glow';
 
   return (
@@ -25,7 +25,7 @@ export const ChannelControls: React.FC<ChannelControlsProps> = ({ channelId }) =
       transition={{ duration: 0.4 }}
     >
       {/* Channel Header */}
-      <div className={`channel-header bg-${channelColor} text-${channelColor}-foreground ${glowClass}`}>
+      <div className={`channel-header ${channelId === 'A' ? 'bg-cyan text-cyan-foreground' : 'bg-magenta text-magenta-foreground'} ${glowClass}`}>
         Channel {channelId}
       </div>
 

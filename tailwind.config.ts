@@ -65,6 +65,14 @@ export default {
 				master: {
 					DEFAULT: 'hsl(var(--master))',
 					foreground: 'hsl(var(--master-foreground))'
+				},
+				cyan: {
+					DEFAULT: 'hsl(var(--cyan))',
+					foreground: 'hsl(var(--cyan-foreground))'
+				},
+				magenta: {
+					DEFAULT: 'hsl(var(--magenta))',
+					foreground: 'hsl(var(--magenta-foreground))'
 				}
 			},
 			borderRadius: {

@@ -17,17 +17,23 @@
     --popover: 240 10% 7%;
     --popover-foreground: 0 0% 98%;
 
-    /* Channel A - Cyan/Blue neon */
-    --channel-a: 191 91% 36.5%;
+    /* Channel A - Cyan neon */
+    --channel-a: 180 100% 50%;
     --channel-a-foreground: 0 0% 0%;
-    --channel-a-glow: 191 91% 36.5%;
-    --channel-a-muted: 191 30% 15%;
+    --channel-a-glow: 180 100% 50%;
+    --channel-a-muted: 180 30% 15%;
 
-    /* Channel B - Red/Orange neon */
-    --channel-b: 0 84% 60%;
+    /* Channel B - Magenta neon */
+    --channel-b: 300 100% 50%;
     --channel-b-foreground: 0 0% 0%;
-    --channel-b-glow: 0 84% 60%;
-    --channel-b-muted: 0 30% 15%;
+    --channel-b-glow: 300 100% 50%;
+    --channel-b-muted: 300 30% 15%;
+
+    /* Cyan and Magenta utilities */
+    --cyan: 180 100% 50%;
+    --cyan-foreground: 0 0% 0%;
+    --magenta: 300 100% 50%;
+    --magenta-foreground: 0 0% 0%;
 
     /* Master controls */
     --master: 45 93% 47%;
@@ -35,7 +41,7 @@
     --master-glow: 45 93% 47%;
 
     /* UI Elements */
-    --primary: 191 91% 36.5%;
+    --primary: 180 100% 50%;
     --primary-foreground: 0 0% 0%;
 
     --secondary: 240 5% 25%;
@@ -44,7 +50,7 @@
     --muted: 240 5% 15%;
     --muted-foreground: 240 5% 65%;
 
-    --accent: 191 91% 36.5%;
+    --accent: 180 100% 50%;
     --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84% 60%;
@@ -53,13 +59,13 @@
     /* Borders and inputs */
     --border: 240 6% 20%;
     --input: 240 6% 10%;
-    --ring: 191 91% 36.5%;
+    --ring: 180 100% 50%;
 
     --radius: 0.375rem;
 
     /* Gradients */
-    --gradient-channel-a: linear-gradient(135deg, hsl(var(--channel-a)), hsl(191 91% 50%));
-    --gradient-channel-b: linear-gradient(135deg, hsl(var(--channel-b)), hsl(0 84% 70%));
+    --gradient-channel-a: linear-gradient(135deg, hsl(var(--channel-a)), hsl(180 100% 60%));
+    --gradient-channel-b: linear-gradient(135deg, hsl(var(--channel-b)), hsl(300 100% 60%));
     --gradient-master: linear-gradient(135deg, hsl(var(--master)), hsl(45 93% 60%));
 
     /* Glows and effects */

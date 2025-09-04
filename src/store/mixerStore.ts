@@ -13,6 +13,13 @@ export interface VideoLibraryItem {
   error?: string;
 }
 
+export interface TimelineMarker {
+  id: string;
+  time: number;
+  label: string;
+  color?: string;
+}
+
 export interface VideoLayer {
   id: string;
   name: string;
@@ -22,6 +29,14 @@ export interface VideoLayer {
   isPlaying: boolean;
   volume: number;
   isMuted: boolean;
+  // Timeline controls
+  currentTime: number;
+  duration: number;
+  playbackSpeed: number;
+  isLooping: boolean;
+  loopInPoint: number;
+  loopOutPoint: number;
+  markers: TimelineMarker[];
 }
 
 export interface Channel {
@@ -64,6 +79,13 @@ interface MixerState {
   removeVideoFromLibrary: (id: string) => void;
   setOutputWindowOpen: (open: boolean) => void;
   updateFPS: (fps: number) => void;
+  // Timeline actions
+  updateLayerTime: (channelId: 'A' | 'B', layerId: string, currentTime: number) => void;
+  updateLayerSpeed: (channelId: 'A' | 'B', layerId: string, speed: number) => void;
+  setLayerLoop: (channelId: 'A' | 'B', layerId: string, inPoint: number, outPoint: number) => void;
+  toggleLayerLoop: (channelId: 'A' | 'B', layerId: string) => void;
+  addLayerMarker: (channelId: 'A' | 'B', layerId: string, marker: TimelineMarker) => void;
+  removeLayerMarker: (channelId: 'A' | 'B', layerId: string, markerId: string) => void;
 }
 
 const createInitialLayer = (index: number): VideoLayer => ({
@@ -75,6 +97,14 @@ const createInitialLayer = (index: number): VideoLayer => ({
   isPlaying: false,
   volume: 0.5,
   isMuted: false,
+  // Timeline defaults
+  currentTime: 0,
+  duration: 0,
+  playbackSpeed: 1,
+  isLooping: false,
+  loopInPoint: 0,
+  loopOutPoint: 0,
+  markers: [],
 });
 
 const createInitialChannel = (id: 'A' | 'B'): Channel => ({
@@ -212,4 +242,85 @@ export const useMixerStore = create<MixerState>((set) => ({
 
   updateFPS: (fps) =>
     set({ fps }),
+
+  // Timeline actions implementations
+  updateLayerTime: (channelId, layerId, currentTime) =>
+    set((state) => ({
+      channels: {
+        ...state.channels,
+        [channelId]: {
+          ...state.channels[channelId],
+          layers: state.channels[channelId].layers.map((layer) =>
+            layer.id === layerId ? { ...layer, currentTime } : layer
+          ),
+        },
+      },
+    })),
+
+  updateLayerSpeed: (channelId, layerId, speed) =>
+    set((state) => ({
+      channels: {
+        ...state.channels,
+        [channelId]: {
+          ...state.channels[channelId],
+          layers: state.channels[channelId].layers.map((layer) =>
+            layer.id === layerId ? { ...layer, playbackSpeed: speed } : layer
+          ),
+        },
+      },
+    })),
+
+  setLayerLoop: (channelId, layerId, inPoint, outPoint) =>
+    set((state) => ({
+      channels: {
+        ...state.channels,
+        [channelId]: {
+          ...state.channels[channelId],
+          layers: state.channels[channelId].layers.map((layer) =>
+            layer.id === layerId ? { ...layer, loopInPoint: inPoint, loopOutPoint: outPoint } : layer
+          ),
+        },
+      },
+    })),
+
+  toggleLayerLoop: (channelId, layerId) =>
+    set((state) => ({
+      channels: {
+        ...state.channels,
+        [channelId]: {
+          ...state.channels[channelId],
+          layers: state.channels[channelId].layers.map((layer) =>
+            layer.id === layerId ? { ...layer, isLooping: !layer.isLooping } : layer
+          ),
+        },
+      },
+    })),
+
+  addLayerMarker: (channelId, layerId, marker) =>
+    set((state) => ({
+      channels: {
+        ...state.channels,
+        [channelId]: {
+          ...state.channels[channelId],
+          layers: state.channels[channelId].layers.map((layer) =>
+            layer.id === layerId ? { ...layer, markers: [...layer.markers, marker] } : layer
+          ),
+        },
+      },
+    })),
+
+  removeLayerMarker: (channelId, layerId, markerId) =>
+    set((state) => ({
+      channels: {
+        ...state.channels,
+        [channelId]: {
+          ...state.channels[channelId],
+          layers: state.channels[channelId].layers.map((layer) =>
+            layer.id === layerId 
+              ? { ...layer, markers: layer.markers.filter(m => m.id !== markerId) } 
+              : layer
+          ),
+        },
+      },
+    })),
 }));

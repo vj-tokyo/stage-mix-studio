@@ -1,7 +1,7 @@
-import { VideoMixer } from '@/components/VideoMixer';
+import { EnhancedVideoMixer } from '@/components/EnhancedVideoMixer';
 
 const Index = () => {
-  return <VideoMixer />;
+  return <EnhancedVideoMixer />;
 };
 
 export default Index;
