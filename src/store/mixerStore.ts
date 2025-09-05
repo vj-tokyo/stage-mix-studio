@@ -81,6 +81,7 @@ interface MixerState {
   updateFPS: (fps: number) => void;
   // Timeline actions
   updateLayerTime: (channelId: 'A' | 'B', layerId: string, currentTime: number) => void;
+  updateLayerDuration: (channelId: 'A' | 'B', layerId: string, duration: number) => void;
   updateLayerSpeed: (channelId: 'A' | 'B', layerId: string, speed: number) => void;
   setLayerLoop: (channelId: 'A' | 'B', layerId: string, inPoint: number, outPoint: number) => void;
   toggleLayerLoop: (channelId: 'A' | 'B', layerId: string) => void;
@@ -252,6 +253,19 @@ export const useMixerStore = create<MixerState>((set) => ({
           ...state.channels[channelId],
           layers: state.channels[channelId].layers.map((layer) =>
             layer.id === layerId ? { ...layer, currentTime } : layer
+          ),
+        },
+      },
+    })),
+
+  updateLayerDuration: (channelId, layerId, duration) =>
+    set((state) => ({
+      channels: {
+        ...state.channels,
+        [channelId]: {
+          ...state.channels[channelId],
+          layers: state.channels[channelId].layers.map((layer) =>
+            layer.id === layerId ? { ...layer, duration, loopOutPoint: duration } : layer
           ),
         },
       },

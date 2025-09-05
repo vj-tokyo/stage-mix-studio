@@ -6,6 +6,7 @@ import { useMixerStore, VideoLayer, BlendMode } from "@/store/mixerStore";
 interface VideoPlaneProps {
   layer: VideoLayer;
   channelMix: number;
+  channelId: 'A' | 'B';
   position: [number, number, number];
 }
 
@@ -81,6 +82,7 @@ const createBlendMaterial = (
 const VideoPlane: React.FC<VideoPlaneProps> = ({
   layer,
   channelMix,
+  channelId,
   position,
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -98,6 +100,15 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     video.muted = true;
     video.playsInline = true;
 
+    // Set video duration in store when loaded
+    const handleLoadedMetadata = () => {
+      if (video.duration && video.duration !== layer.duration) {
+        useMixerStore.getState().updateLayerDuration(channelId, layer.id, video.duration);
+      }
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
     if (layer.isPlaying) {
       video.play().catch(console.error);
     }
@@ -111,21 +122,73 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     textureRef.current = texture;
 
     return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.pause();
       texture.dispose();
     };
-  }, [layer.videoSrc, layer.isPlaying]);
+  }, [layer.videoSrc, layer.isPlaying, channelId, layer.id, layer.duration]);
 
-  // Update playback state
+  // Update playback state and sync current time
   useEffect(() => {
     if (!videoRef.current) return;
 
-    if (layer.isPlaying) {
-      videoRef.current.play().catch(console.error);
-    } else {
-      videoRef.current.pause();
+    const video = videoRef.current;
+    
+    // Set video time to match layer
+    if (Math.abs(video.currentTime - layer.currentTime) > 0.1) {
+      video.currentTime = layer.currentTime;
     }
-  }, [layer.isPlaying]);
+    
+    // Set playback speed
+    video.playbackRate = layer.playbackSpeed;
+    
+    // Handle volume
+    video.volume = layer.volume;
+    
+    // Handle looping
+    if (layer.isLooping) {
+      video.loop = false; // Handle manually for custom loop points
+    } else {
+      video.loop = layer.isLooping;
+    }
+
+    if (layer.isPlaying) {
+      video.play().catch(console.error);
+    } else {
+      video.pause();
+    }
+  }, [layer.isPlaying, layer.currentTime, layer.playbackSpeed, layer.volume, layer.isLooping]);
+
+  // Handle custom loop points
+  useEffect(() => {
+    if (!videoRef.current || !layer.isLooping) return;
+    
+    const video = videoRef.current;
+    const handleTimeUpdate = () => {
+      if (video.currentTime >= layer.loopOutPoint) {
+        video.currentTime = layer.loopInPoint;
+      }
+    };
+    
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    return () => video.removeEventListener('timeupdate', handleTimeUpdate);
+  }, [layer.isLooping, layer.loopInPoint, layer.loopOutPoint]);
+
+  // Sync video time back to store (for timeline display)
+  useFrame(() => {
+    if (!videoRef.current) return;
+    
+    const video = videoRef.current;
+    const { updateLayerTime } = useMixerStore.getState();
+    
+    if (layer.isPlaying) {
+      // Update store with current video time for timeline sync
+      const timeDiff = Math.abs(video.currentTime - layer.currentTime);
+      if (timeDiff > 0.2) {
+        updateLayerTime(channelId, layer.id, video.currentTime);
+      }
+    }
+  });
 
   // Create material with proper blend mode
   const material = useMemo(() => {
@@ -210,6 +273,7 @@ const Scene: React.FC = () => {
           key={`A-${layer.id}`}
           layer={layer}
           channelMix={channelAMix}
+          channelId="A"
           position={[0, 0, index * 0.001]}
         />
       ))}
@@ -220,6 +284,7 @@ const Scene: React.FC = () => {
           key={`B-${layer.id}`}
           layer={layer}
           channelMix={channelBMix}
+          channelId="B"
           position={[0, 0, (index + 3) * 0.001]}
         />
       ))}
