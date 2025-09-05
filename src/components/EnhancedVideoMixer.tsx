@@ -79,8 +79,21 @@ export const EnhancedVideoMixer: React.FC = () => {
               </div>
               
               {/* Main Preview Canvas */}
-              <div className="flex-1 min-h-0 max-h-96">
+              <div className="flex-1 min-h-0 max-h-96 mb-4">
                 <VideoCanvas />
+              </div>
+              
+              {/* Master Controls */}
+              <div className="space-y-4">
+                {/* Master Fader */}
+                <div className="flex justify-center">
+                  <MasterFader />
+                </div>
+                
+                {/* Media Library */}
+                <div className="flex justify-center">
+                  <VideoLibrary onSelectVideo={(src) => console.log('Video selected:', src)} />
+                </div>
               </div>
             </div>
           </motion.div>
@@ -108,40 +121,6 @@ export const EnhancedVideoMixer: React.FC = () => {
             </div>
           </motion.div>
         </div>
-
-        {/* Bottom Bar - Master Controls */}
-        <motion.div 
-          className="bg-card/50 backdrop-blur-sm rounded-lg border border-border/50 p-4 flex-shrink-0"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-center">
-            
-            {/* Master Fader */}
-            <div className="lg:col-span-2 flex justify-center">
-              <MasterFader />
-            </div>
-            
-            {/* Media Library */}
-            <div className="flex justify-center">
-              <VideoLibrary onSelectVideo={(src) => console.log('Video selected:', src)} />
-            </div>
-            
-            {/* Spacer */}
-            <div className="hidden lg:block"></div>
-            
-            {/* Additional Controls */}
-            <div className="flex justify-center gap-2">
-              <button className="px-3 py-2 bg-primary/20 hover:bg-primary/30 rounded-lg text-xs font-medium transition-colors">
-                PRESETS
-              </button>
-              <button className="px-3 py-2 bg-secondary/20 hover:bg-secondary/30 rounded-lg text-xs font-medium transition-colors">
-                SYNC
-              </button>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </div>
   );
