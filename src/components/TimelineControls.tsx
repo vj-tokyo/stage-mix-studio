@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Plus, X, FastForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,9 +28,15 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   channelColor
 }) => {
   const timelineRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showMarkerInput, setShowMarkerInput] = useState(false);
   const [markerLabel, setMarkerLabel] = useState('');
   const [clickTime, setClickTime] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewTime, setPreviewTime] = useState(0);
+  const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 });
+  const [thumbnailDataUrl, setThumbnailDataUrl] = useState<string>('');
 
   const {
     updateLayerTime,
@@ -41,6 +47,45 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
     removeLayerMarker,
     toggleLayerPlayback
   } = useMixerStore();
+
+  // Generate thumbnail at specific time
+  const generateThumbnail = useCallback((time: number) => {
+    if (!videoRef.current || !canvasRef.current || !layer.videoSrc) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) return;
+    
+    video.currentTime = time;
+    video.onseeked = () => {
+      canvas.width = 160;
+      canvas.height = 90;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      setThumbnailDataUrl(canvas.toDataURL());
+      video.onseeked = null;
+    };
+  }, [layer.videoSrc]);
+
+  // Handle timeline hover for preview
+  const handleTimelineHover = (e: React.MouseEvent) => {
+    if (!timelineRef.current || layer.duration === 0 || !layer.videoSrc) return;
+    
+    const rect = timelineRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+    const time = percentage * layer.duration;
+    
+    setPreviewTime(time);
+    setPreviewPosition({ x: e.clientX, y: e.clientY });
+    setShowPreview(true);
+    generateThumbnail(time);
+  };
+
+  const handleTimelineLeave = () => {
+    setShowPreview(false);
+  };
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -143,6 +188,8 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
           ref={timelineRef}
           className="relative h-8 bg-muted rounded cursor-pointer"
           onClick={handleTimelineClick}
+          onMouseMove={handleTimelineHover}
+          onMouseLeave={handleTimelineLeave}
           onDoubleClick={(e) => {
             if (!timelineRef.current || layer.duration === 0) return;
             const rect = timelineRef.current.getBoundingClientRect();
@@ -199,6 +246,43 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
             </div>
           ))}
         </div>
+
+        {/* Hidden video and canvas for thumbnail generation */}
+        {layer.videoSrc && (
+          <>
+            <video
+              ref={videoRef}
+              src={layer.videoSrc}
+              muted
+              preload="metadata"
+              className="hidden"
+            />
+            <canvas ref={canvasRef} className="hidden" />
+          </>
+        )}
+
+        {/* Preview Thumbnail */}
+        {showPreview && thumbnailDataUrl && (
+          <div 
+            className="fixed z-50 pointer-events-none"
+            style={{ 
+              left: previewPosition.x - 80, 
+              top: previewPosition.y - 120,
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <div className="bg-black/80 rounded-lg p-2 border border-border">
+              <img 
+                src={thumbnailDataUrl} 
+                alt="Video preview"
+                className="w-40 h-[90px] rounded object-cover"
+              />
+              <div className="text-xs text-white text-center mt-1 font-mono">
+                {formatTime(previewTime)}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Loop Points Slider */}
         {layer.isLooping && layer.duration > 0 && (
