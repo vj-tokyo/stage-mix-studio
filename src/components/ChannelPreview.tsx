@@ -89,7 +89,15 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, position, opacity }) => 
     }
   }, [layer.opacity, layer.blendMode, opacity]);
 
-  if (!layer.videoSrc) return null;
+  if (!layer.videoSrc) {
+    // Show placeholder when no video is loaded
+    return (
+      <mesh ref={meshRef} position={position}>
+        <planeGeometry args={[2, 1.125]} />
+        <meshBasicMaterial color="#333333" opacity={0.8} transparent />
+      </mesh>
+    );
+  }
 
   return (
     <mesh ref={meshRef} position={position}>
@@ -144,9 +152,20 @@ export const ChannelPreview: React.FC<ChannelPreviewProps> = ({
         <ChannelScene channel={channel} />
       </Canvas>
       
-      {/* Channel Label */}
-      <div className="absolute top-2 left-2 text-xs font-bold text-white bg-black/50 px-2 py-1 rounded">
-        CH {channelId}
+      {/* Channel Label and Status */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-2 left-2 text-xs font-bold text-white bg-black/50 px-2 py-1 rounded">
+          CH {channelId}
+        </div>
+        {channel.layers.every(layer => !layer.videoSrc) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-white/60">
+              <div className="text-2xl mb-2">📹</div>
+              <div className="text-xs">No Video</div>
+              <div className="text-xs">Load from Library</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
