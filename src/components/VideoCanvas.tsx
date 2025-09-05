@@ -1,7 +1,7 @@
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useRef, useMemo, useEffect } from 'react';
-import * as THREE from 'three';
-import { useMixerStore, VideoLayer } from '@/store/mixerStore';
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useRef, useMemo, useEffect } from "react";
+import * as THREE from "three";
+import { useMixerStore, VideoLayer, BlendMode } from "@/store/mixerStore";
 
 interface VideoPlaneProps {
   layer: VideoLayer;
@@ -9,7 +9,80 @@ interface VideoPlaneProps {
   position: [number, number, number];
 }
 
-const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) => {
+// Utility function to create proper blend mode material
+const createBlendMaterial = (
+  texture: THREE.VideoTexture,
+  blendMode: BlendMode,
+  opacity: number
+): THREE.MeshBasicMaterial => {
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    opacity: opacity,
+  });
+
+  // Apply correct Three.js blending modes
+  switch (blendMode) {
+    case "normal":
+      material.blending = THREE.NormalBlending;
+      break;
+
+    case "multiply":
+      material.blending = THREE.MultiplyBlending;
+      break;
+
+    case "screen":
+      // Screen blending using custom blend equation
+      material.blending = THREE.CustomBlending;
+      material.blendEquation = THREE.AddEquation;
+      material.blendSrc = THREE.OneMinusDstColorFactor;
+      material.blendDst = THREE.OneFactor;
+      break;
+
+    case "overlay":
+      // Overlay is complex, approximated with MultiplyBlending for now
+      // For true overlay, you'd need a custom shader
+      material.blending = THREE.MultiplyBlending;
+      material.opacity = Math.min(1, opacity * 1.2); // Slightly enhance
+      break;
+
+    case "lighten":
+      // Lighten mode using max blend equation
+      material.blending = THREE.CustomBlending;
+      material.blendEquation = THREE.MaxEquation;
+      material.blendSrc = THREE.SrcAlphaFactor;
+      material.blendDst = THREE.OneMinusSrcAlphaFactor;
+      break;
+
+    case "darken":
+      // Darken mode using min blend equation
+      material.blending = THREE.CustomBlending;
+      material.blendEquation = THREE.MinEquation;
+      material.blendSrc = THREE.SrcAlphaFactor;
+      material.blendDst = THREE.OneMinusSrcAlphaFactor;
+      break;
+
+    case "difference":
+      // Difference blending
+      material.blending = THREE.CustomBlending;
+      material.blendEquation = THREE.ReverseSubtractEquation;
+      material.blendSrc = THREE.SrcAlphaFactor;
+      material.blendDst = THREE.OneMinusSrcAlphaFactor;
+      break;
+
+    default:
+      material.blending = THREE.NormalBlending;
+      break;
+  }
+
+  return material;
+};
+
+const VideoPlane: React.FC<VideoPlaneProps> = ({
+  layer,
+  channelMix,
+  position,
+}) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const textureRef = useRef<THREE.VideoTexture | null>(null);
@@ -18,13 +91,13 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
   useEffect(() => {
     if (!layer.videoSrc) return;
 
-    const video = document.createElement('video');
+    const video = document.createElement("video");
     video.src = layer.videoSrc;
-    video.crossOrigin = 'anonymous';
+    video.crossOrigin = "anonymous";
     video.loop = true;
     video.muted = true;
     video.playsInline = true;
-    
+
     if (layer.isPlaying) {
       video.play().catch(console.error);
     }
@@ -32,6 +105,7 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
     const texture = new THREE.VideoTexture(video);
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
+    texture.format = THREE.RGBAFormat;
 
     videoRef.current = video;
     textureRef.current = texture;
@@ -40,7 +114,7 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
       video.pause();
       texture.dispose();
     };
-  }, [layer.videoSrc]);
+  }, [layer.videoSrc, layer.isPlaying]);
 
   // Update playback state
   useEffect(() => {
@@ -53,68 +127,54 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
     }
   }, [layer.isPlaying]);
 
-  // Create material with blend mode
+  // Create material with proper blend mode
   const material = useMemo(() => {
     if (!textureRef.current) {
-      return new THREE.MeshBasicMaterial({ 
+      return new THREE.MeshBasicMaterial({
         color: 0x333333,
         transparent: true,
-        opacity: Math.max(0.1, layer.opacity * channelMix)
+        opacity: Math.max(0.1, layer.opacity * channelMix),
       });
     }
 
-    // Fix opacity calculation - don't double-apply transparency
+    // Calculate final opacity correctly
     let finalOpacity = layer.opacity;
-    
-    // Apply channel mix properly - if channelMix is 0, layer should be invisible
+
+    // Apply channel mix properly
     if (channelMix <= 0.01) {
       finalOpacity = 0;
     } else if (channelMix >= 0.99) {
-      // Full opacity from this channel
       finalOpacity = layer.opacity;
     } else {
-      // Proportional mixing
       finalOpacity = layer.opacity * channelMix;
     }
 
-    const materialProps: any = {
-      map: textureRef.current,
-      transparent: finalOpacity < 1,
-      opacity: finalOpacity,
-    };
+    // Create material with proper blend mode
+    return createBlendMaterial(
+      textureRef.current,
+      layer.blendMode,
+      finalOpacity
+    );
+  }, [
+    layer.opacity,
+    layer.blendMode,
+    channelMix,
+    // textureRef.current,
+    // textureRef.current,
+  ]);
 
-    // Apply blend mode adjustments more subtly
-    switch (layer.blendMode) {
-      case 'multiply':
-        // Keep original opacity for multiply
-        break;
-      case 'screen':
-        // Screen mode can be slightly brighter
-        materialProps.opacity = Math.min(1, finalOpacity * 1.05);
-        break;
-      case 'overlay':
-        // Overlay keeps original opacity
-        break;
-      case 'difference':
-        // Difference mode keeps original opacity
-        break;
-      default:
-        // Normal mode keeps original opacity
-        break;
+  // Update material when it changes
+  useEffect(() => {
+    if (meshRef.current && material) {
+      meshRef.current.material = material;
     }
-
-    return new THREE.MeshBasicMaterial(materialProps);
-  }, [layer.opacity, layer.blendMode, channelMix, textureRef.current]);
+  }, [material]);
 
   if (!layer.videoSrc) {
     return (
       <mesh ref={meshRef} position={position}>
         <planeGeometry args={[4, 2.25]} />
-        <meshBasicMaterial 
-          color={0x111111} 
-          transparent 
-          opacity={0.3} 
-        />
+        <meshBasicMaterial color={0x111111} transparent opacity={0.3} />
       </mesh>
     );
   }
@@ -129,9 +189,9 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({ layer, channelMix, position }) 
 
 const Scene: React.FC = () => {
   const { channels, masterFader } = useMixerStore();
-  
-  // Fix opacity calculation - when fader is 0 show only A, when 1 show only B
-  const channelAMix = masterFader === 0 ? 1 : (1 - masterFader);
+
+  // Calculate channel mixing correctly
+  const channelAMix = masterFader === 0 ? 1 : 1 - masterFader;
   const channelBMix = masterFader === 1 ? 1 : masterFader;
 
   return (
@@ -141,9 +201,9 @@ const Scene: React.FC = () => {
         <planeGeometry args={[8, 4.5]} />
         <meshBasicMaterial color={0x000000} />
       </mesh>
-      
+
       <ambientLight intensity={1} />
-      
+
       {/* Channel A Layers */}
       {channels.A.layers.map((layer, index) => (
         <VideoPlane
@@ -153,7 +213,7 @@ const Scene: React.FC = () => {
           position={[0, 0, index * 0.001]}
         />
       ))}
-      
+
       {/* Channel B Layers */}
       {channels.B.layers.map((layer, index) => (
         <VideoPlane
@@ -170,14 +230,15 @@ const Scene: React.FC = () => {
 export const VideoCanvas: React.FC = () => {
   return (
     <div className="w-full h-full bg-card rounded-lg overflow-hidden border border-border">
-      <Canvas 
-        camera={{ 
-          position: [0, 0, 5], 
-          fov: 50 
+      <Canvas
+        camera={{
+          position: [0, 0, 5],
+          fov: 50,
         }}
-        gl={{ 
+        gl={{
           preserveDrawingBuffer: true,
-          antialias: true 
+          antialias: true,
+          alpha: false, // Important for proper blending
         }}
       >
         <Scene />
