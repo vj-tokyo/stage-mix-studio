@@ -33,9 +33,11 @@ export const EnhancedVideoMixer: React.FC = () => {
         </div>
       </motion.header>
 
-      {/* Main Content - 3 Column Layout */}
-      <div className="max-w-7xl mx-auto p-4 pb-40">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      {/* Main Content - Flex Layout */}
+      <div className="max-w-7xl mx-auto p-4 flex flex-col min-h-[calc(100vh-100px)]">
+        
+        {/* Top Grid - 3 Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 mb-6">
           
           {/* Left Column - Channel A */}
           <motion.div 
@@ -109,7 +111,7 @@ export const EnhancedVideoMixer: React.FC = () => {
 
         {/* Bottom Bar - Master Controls */}
         <motion.div 
-          className="mt-6 bg-card/50 backdrop-blur-sm rounded-lg border border-border/50 p-4"
+          className="bg-card/50 backdrop-blur-sm rounded-lg border border-border/50 p-4 flex-shrink-0"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
