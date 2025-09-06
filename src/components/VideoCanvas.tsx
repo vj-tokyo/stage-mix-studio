@@ -257,15 +257,31 @@ const Scene: React.FC = () => {
   const channelAMix = masterFader === 0 ? 1 : 1 - masterFader;
   const channelBMix = masterFader === 1 ? 1 : masterFader;
 
+  // Check if we have any video content
+  const hasContent = channels.A.layers.some(layer => layer.videoSrc) || 
+                    channels.B.layers.some(layer => layer.videoSrc);
+
   return (
     <>
-      {/* Black background plane */}
-      <mesh position={[0, 0, -1]}>
+      {/* Dark background plane */}
+      <mesh position={[0, 0, -0.1]}>
         <planeGeometry args={[8, 4.5]} />
-        <meshBasicMaterial color={0x000000} />
+        <meshBasicMaterial color={0x111111} />
       </mesh>
 
       <ambientLight intensity={1} />
+
+      {/* Show placeholder when no content */}
+      {!hasContent && (
+        <mesh position={[0, 0, 0]}>
+          <planeGeometry args={[3, 1.5]} />
+          <meshBasicMaterial 
+            color={0x333333} 
+            transparent 
+            opacity={0.8} 
+          />
+        </mesh>
+      )}
 
       {/* Channel A Layers */}
       {channels.A.layers.map((layer, index) => (
@@ -288,13 +304,39 @@ const Scene: React.FC = () => {
           position={[0, 0, (index + 3) * 0.001]}
         />
       ))}
+
+      {/* Test grid overlay when no content to help with visibility */}
+      {!hasContent && (
+        <>
+          {/* Center crosshair */}
+          <mesh position={[0, 0, 0.001]}>
+            <planeGeometry args={[0.1, 2]} />
+            <meshBasicMaterial color={0x666666} transparent opacity={0.5} />
+          </mesh>
+          <mesh position={[0, 0, 0.001]}>
+            <planeGeometry args={[2, 0.1]} />
+            <meshBasicMaterial color={0x666666} transparent opacity={0.5} />
+          </mesh>
+          
+          {/* Corner markers */}
+          {[
+            [-1.8, 1, 0.001], [1.8, 1, 0.001], 
+            [-1.8, -1, 0.001], [1.8, -1, 0.001]
+          ].map((position, index) => (
+            <mesh key={index} position={position as [number, number, number]}>
+              <planeGeometry args={[0.2, 0.2]} />
+              <meshBasicMaterial color={0x888888} transparent opacity={0.6} />
+            </mesh>
+          ))}
+        </>
+      )}
     </>
   );
 };
 
 export const VideoCanvas: React.FC = () => {
   return (
-    <div className="w-full h-full bg-card rounded-lg overflow-hidden border border-border">
+    <div className="w-full h-full bg-slate-900 rounded-lg overflow-hidden border border-border relative">
       <Canvas
         camera={{
           position: [0, 0, 5],
@@ -303,11 +345,16 @@ export const VideoCanvas: React.FC = () => {
         gl={{
           preserveDrawingBuffer: true,
           antialias: true,
-          alpha: false, // Important for proper blending
+          alpha: false,
         }}
       >
         <Scene />
       </Canvas>
+      
+      {/* Fallback overlay for better visibility */}
+      <div className="absolute top-4 left-4 text-xs text-muted-foreground bg-black/50 px-2 py-1 rounded">
+        Main Output Canvas
+      </div>
     </div>
   );
 };
