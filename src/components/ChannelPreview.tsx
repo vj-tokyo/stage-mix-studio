@@ -94,40 +94,39 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
   useEffect(() => {
     if (!layer.videoSrc) return;
 
-    // Create or reuse video element
-    if (!videoRef.current) {
-      videoRef.current = document.createElement("video");
-      videoRef.current.crossOrigin = "anonymous";
-      videoRef.current.loop = layer.isLooping;
-      videoRef.current.muted = layer.isMuted;
-      videoRef.current.volume = layer.volume;
-      videoRef.current.playbackRate = layer.playbackSpeed;
-      videoRef.current.playsInline = true;
-    }
-
-    const video = videoRef.current;
+    // Create video element
+    const video = document.createElement("video");
     video.src = layer.videoSrc;
+    video.crossOrigin = "anonymous";
+    video.loop = layer.isLooping;
+    video.muted = layer.isMuted;
+    video.volume = layer.volume;
+    video.playbackRate = layer.playbackSpeed;
+    video.playsInline = true;
     video.currentTime = layer.currentTime;
 
+    // Force video to load
+    video.load();
+
     // Create video texture
-    textureRef.current = new THREE.VideoTexture(video);
-    textureRef.current.minFilter = THREE.LinearFilter;
-    textureRef.current.magFilter = THREE.LinearFilter;
-    textureRef.current.format = THREE.RGBAFormat;
+    const texture = new THREE.VideoTexture(video);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.format = THREE.RGBAFormat;
+
+    videoRef.current = video;
+    textureRef.current = texture;
 
     return () => {
-      if (textureRef.current) {
-        textureRef.current.dispose();
+      if (video) {
+        video.pause();
+        video.src = '';
+      }
+      if (texture) {
+        texture.dispose();
       }
     };
-  }, [
-    layer.videoSrc,
-    layer.currentTime,
-    layer.isLooping,
-    layer.isMuted,
-    layer.playbackSpeed,
-    layer.volume,
-  ]);
+  }, [layer.videoSrc]);
 
   // Update video properties
   useEffect(() => {
@@ -154,7 +153,7 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
   useEffect(() => {
     if (meshRef.current && textureRef.current) {
       // Calculate final opacity
-      const finalOpacity = opacity * layer.opacity;
+      const finalOpacity = Math.max(0.1, opacity * layer.opacity);
 
       // Create material with proper blend mode
       const newMaterial = createBlendMaterial(
@@ -172,7 +171,7 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
       meshRef.current.material = newMaterial;
       materialRef.current = newMaterial;
     }
-  }, [layer.opacity, layer.blendMode, opacity]);
+  }, [layer.opacity, layer.blendMode, opacity, textureRef.current]); // Include texture
 
   // Cleanup
   useEffect(() => {

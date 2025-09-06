@@ -109,6 +109,9 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
 
+    // Force video to load
+    video.load();
+
     if (layer.isPlaying) {
       video.play().catch(console.error);
     }
@@ -124,9 +127,10 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.pause();
+      video.src = '';
       texture.dispose();
     };
-  }, [layer.videoSrc, layer.isPlaying, channelId, layer.id, layer.duration]);
+  }, [layer.videoSrc]);
 
   // Update playback state and sync current time
   useEffect(() => {
@@ -200,7 +204,7 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
       });
     }
 
-  // Calculate final opacity correctly - ensure visibility
+    // Calculate final opacity correctly - ensure visibility
     let finalOpacity = Math.max(0.1, layer.opacity * channelMix);
 
     // Create material with proper blend mode
@@ -213,8 +217,7 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     layer.opacity,
     layer.blendMode,
     channelMix,
-    // textureRef.current,
-    // textureRef.current,
+    textureRef.current, // Include texture in dependencies
   ]);
 
   // Update material when it changes
