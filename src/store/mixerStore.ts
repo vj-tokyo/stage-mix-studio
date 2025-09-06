@@ -52,7 +52,6 @@ interface MixerState {
   
   // Master controls
   masterFader: number; // 0-1, 0 = full A, 1 = full B
-  masterBlendMode: BlendMode;
   isRecording: boolean;
   
   // Video Library
@@ -73,7 +72,6 @@ interface MixerState {
   toggleLayerPlayback: (channelId: 'A' | 'B', layerId: string) => void;
   updateChannelBlendMode: (channelId: 'A' | 'B', blendMode: BlendMode) => void;
   updateMasterFader: (value: number) => void;
-  updateMasterBlendMode: (blendMode: BlendMode) => void;
   toggleRecording: () => void;
   addVideoToLibrary: (item: VideoLibraryItem) => void;
   removeVideoFromLibrary: (id: string) => void;
@@ -126,7 +124,6 @@ export const useMixerStore = create<MixerState>((set) => ({
   },
   
   masterFader: 0.5,
-  masterBlendMode: 'normal',
   isRecording: false,
   videoLibrary: [],
   outputWindowOpen: false,
@@ -186,9 +183,6 @@ export const useMixerStore = create<MixerState>((set) => ({
 
   updateMasterFader: (value) =>
     set({ masterFader: value }),
-
-  updateMasterBlendMode: (blendMode) =>
-    set({ masterBlendMode: blendMode }),
 
   updateLayerVolume: (channelId, layerId, volume) =>
     set((state) => ({
