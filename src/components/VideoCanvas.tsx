@@ -251,8 +251,8 @@ const Scene: React.FC = () => {
   const channelBMix = masterFader >= 0.5 ? 1 : 2 * masterFader;
 
   // Check if we have any video content
-  const hasContent = channels.A.layers.some(layer => layer.videoSrc) || 
-                    channels.B.layers.some(layer => layer.videoSrc);
+  const hasVideoContent = channels.A.layers.some(layer => layer.videoSrc && layer.opacity > 0) || 
+                          channels.B.layers.some(layer => layer.videoSrc && layer.opacity > 0);
 
   return (
     <>
@@ -264,64 +264,58 @@ const Scene: React.FC = () => {
 
       <ambientLight intensity={1} />
 
-      {/* Show placeholder when no content */}
-      {!hasContent && (
-        <mesh position={[0, 0, 0]}>
-          <planeGeometry args={[3, 1.5]} />
-          <meshBasicMaterial 
-            color={0x333333} 
-            transparent 
-            opacity={0.8} 
-          />
+      {/* Always show reference grid */}
+      <>
+        {/* Center crosshair */}
+        <mesh position={[0, 0, 0.001]}>
+          <planeGeometry args={[0.1, 2]} />
+          <meshBasicMaterial color={0x666666} transparent opacity={0.3} />
         </mesh>
-      )}
+        <mesh position={[0, 0, 0.001]}>
+          <planeGeometry args={[2, 0.1]} />
+          <meshBasicMaterial color={0x666666} transparent opacity={0.3} />
+        </mesh>
+        
+        {/* Corner markers */}
+        {[
+          [-1.8, 1, 0.001], [1.8, 1, 0.001], 
+          [-1.8, -1, 0.001], [1.8, -1, 0.001]
+        ].map((position, index) => (
+          <mesh key={index} position={position as [number, number, number]}>
+            <planeGeometry args={[0.2, 0.2]} />
+            <meshBasicMaterial color={0x888888} transparent opacity={0.4} />
+          </mesh>
+        ))}
+      </>
 
-      {/* Channel A Layers */}
+      {/* Channel A Layers - render with proper z-index */}
       {channels.A.layers.map((layer, index) => (
         <VideoPlane
           key={`A-${layer.id}`}
           layer={layer}
           channelMix={channelAMix}
           channelId="A"
-          position={[0, 0, index * 0.001]}
+          position={[0, 0, 0.01 + index * 0.001]}
         />
       ))}
 
-      {/* Channel B Layers */}
+      {/* Channel B Layers - render with higher z-index */}
       {channels.B.layers.map((layer, index) => (
         <VideoPlane
           key={`B-${layer.id}`}
           layer={layer}
           channelMix={channelBMix}
           channelId="B"
-          position={[0, 0, (index + 3) * 0.001]}
+          position={[0, 0, 0.02 + index * 0.001]}
         />
       ))}
 
-      {/* Test grid overlay when no content to help with visibility */}
-      {!hasContent && (
-        <>
-          {/* Center crosshair */}
-          <mesh position={[0, 0, 0.001]}>
-            <planeGeometry args={[0.1, 2]} />
-            <meshBasicMaterial color={0x666666} transparent opacity={0.5} />
-          </mesh>
-          <mesh position={[0, 0, 0.001]}>
-            <planeGeometry args={[2, 0.1]} />
-            <meshBasicMaterial color={0x666666} transparent opacity={0.5} />
-          </mesh>
-          
-          {/* Corner markers */}
-          {[
-            [-1.8, 1, 0.001], [1.8, 1, 0.001], 
-            [-1.8, -1, 0.001], [1.8, -1, 0.001]
-          ].map((position, index) => (
-            <mesh key={index} position={position as [number, number, number]}>
-              <planeGeometry args={[0.2, 0.2]} />
-              <meshBasicMaterial color={0x888888} transparent opacity={0.6} />
-            </mesh>
-          ))}
-        </>
+      {/* Status indicator */}
+      {hasVideoContent && (
+        <mesh position={[3.5, 1.8, 0.001]}>
+          <planeGeometry args={[0.3, 0.3]} />
+          <meshBasicMaterial color={0x00ff00} transparent opacity={0.8} />
+        </mesh>
       )}
     </>
   );
