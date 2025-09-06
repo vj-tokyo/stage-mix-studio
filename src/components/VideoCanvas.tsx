@@ -200,17 +200,8 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
       });
     }
 
-    // Calculate final opacity correctly
-    let finalOpacity = layer.opacity;
-
-    // Apply channel mix properly
-    if (channelMix <= 0.01) {
-      finalOpacity = 0;
-    } else if (channelMix >= 0.99) {
-      finalOpacity = layer.opacity;
-    } else {
-      finalOpacity = layer.opacity * channelMix;
-    }
+  // Calculate final opacity correctly - ensure visibility
+    let finalOpacity = Math.max(0.1, layer.opacity * channelMix);
 
     // Create material with proper blend mode
     return createBlendMaterial(
@@ -243,9 +234,8 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
   }
 
   return (
-    <mesh ref={meshRef} position={position}>
+    <mesh ref={meshRef} position={position} material={material}>
       <planeGeometry args={[4, 2.25]} />
-      <primitive object={material} />
     </mesh>
   );
 };
@@ -253,9 +243,9 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
 const Scene: React.FC = () => {
   const { channels, masterFader } = useMixerStore();
 
-  // Calculate channel mixing correctly
-  const channelAMix = masterFader === 0 ? 1 : 1 - masterFader;
-  const channelBMix = masterFader === 1 ? 1 : masterFader;
+  // Calculate channel mixing correctly - ensure both channels are visible when fader is centered
+  const channelAMix = masterFader <= 0.5 ? 1 : 2 * (1 - masterFader);
+  const channelBMix = masterFader >= 0.5 ? 1 : 2 * masterFader;
 
   // Check if we have any video content
   const hasContent = channels.A.layers.some(layer => layer.videoSrc) || 
