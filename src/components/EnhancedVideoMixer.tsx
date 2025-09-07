@@ -90,7 +90,7 @@ export const EnhancedVideoMixer: React.FC = () => {
               </div>
 
               {/* Bottom Section - Video Library */}
-              <div
+              <motion.div
                 className="mt-6"
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -99,7 +99,7 @@ export const EnhancedVideoMixer: React.FC = () => {
                 <VideoLibrary
                   onSelectVideo={(src) => console.log("Video selected:", src)}
                 />
-              </div>
+              </motion.div>
             </div>
           </motion.div>
 
