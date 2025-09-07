@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { Slider } from '@/components/ui/slider';
 import { useMixerStore } from '@/store/mixerStore';
 
+// Master Fader Component - Crossfade between channels
+
 export const MasterFader: React.FC = () => {
   const { 
     masterFader, 
