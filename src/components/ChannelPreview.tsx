@@ -120,13 +120,20 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     return () => {
       if (video) {
         video.pause();
-        video.src = '';
+        video.src = "";
       }
       if (texture) {
         texture.dispose();
       }
     };
-  }, [layer.videoSrc]);
+  }, [
+    layer.videoSrc,
+    layer.currentTime,
+    layer.isLooping,
+    layer.isMuted,
+    layer.playbackSpeed,
+    layer.volume,
+  ]);
 
   // Update video properties
   useEffect(() => {
@@ -171,7 +178,12 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
       meshRef.current.material = newMaterial;
       materialRef.current = newMaterial;
     }
-  }, [layer.opacity, layer.blendMode, opacity, textureRef.current]); // Include texture
+  }, [
+    layer.opacity,
+    layer.blendMode,
+    opacity,
+    // textureRef.current
+  ]); // Include texture
 
   // Cleanup
   useEffect(() => {
