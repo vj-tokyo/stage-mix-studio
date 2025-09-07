@@ -246,9 +246,9 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
 const Scene: React.FC = () => {
   const { channels, masterFader } = useMixerStore();
 
-  // Calculate channel mixing correctly - ensure both channels are visible when fader is centered
-  const channelAMix = masterFader <= 0.5 ? 1 : 2 * (1 - masterFader);
-  const channelBMix = masterFader >= 0.5 ? 1 : 2 * masterFader;
+  // Simple crossfade logic: 0 = all A, 1 = all B
+  const channelAMix = 1 - masterFader; // A fades out as fader moves to B
+  const channelBMix = masterFader;     // B fades in as fader moves to B
 
   // Check if we have any video content
   const hasVideoContent = channels.A.layers.some(layer => layer.videoSrc && layer.opacity > 0) || 
