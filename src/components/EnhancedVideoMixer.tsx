@@ -83,18 +83,13 @@ export const EnhancedVideoMixer: React.FC = () => {
                 <VideoCanvas />
               </div>
               
-              {/* Master Controls */}
-              <div className="space-y-4">
-                {/* Master Fader */}
-                <div className="flex justify-center">
-                  <MasterFader />
+                {/* Master Controls */}
+                <div className="space-y-4">
+                  {/* Master Fader */}
+                  <div className="flex justify-center">
+                    <MasterFader />
+                  </div>
                 </div>
-                
-                {/* Media Library */}
-                <div className="flex justify-center">
-                  <VideoLibrary onSelectVideo={(src) => console.log('Video selected:', src)} />
-                </div>
-              </div>
             </div>
           </motion.div>
 
@@ -121,6 +116,16 @@ export const EnhancedVideoMixer: React.FC = () => {
             </div>
           </motion.div>
         </div>
+        
+        {/* Bottom Section - Video Library */}
+        <motion.div 
+          className="mt-6"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <VideoLibrary onSelectVideo={(src) => console.log('Video selected:', src)} />
+        </motion.div>
       </div>
     </div>
   );

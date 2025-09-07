@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Plus, X, Play, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+
 import { useMixerStore, VideoLibraryItem } from '@/store/mixerStore';
 
 interface VideoLibraryProps {
@@ -12,7 +12,6 @@ interface VideoLibraryProps {
 
 export const VideoLibrary: React.FC<VideoLibraryProps> = ({ onSelectVideo }) => {
   const { videoLibrary, addVideoToLibrary, removeVideoFromLibrary } = useMixerStore();
-  const [isOpen, setIsOpen] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,133 +98,120 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ onSelectVideo }) => 
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="mb-4">
-          <Plus className="w-4 h-4 mr-2" />
-          Video Library ({videoLibrary.length})
+    <div className="bg-card rounded-lg border border-border p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Video Library</h3>
+        <span className="text-sm text-muted-foreground">({videoLibrary.length} videos)</span>
+      </div>
+
+      {/* Upload Controls */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          className="flex-1"
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          Upload Files
         </Button>
-      </DialogTrigger>
-      
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Video Library</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Upload Controls */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex-1"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Files
-            </Button>
-            
-            <div className="flex flex-1 gap-2">
-              <Input
-                placeholder="Video URL..."
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleUrlAdd()}
-              />
-              <Button onClick={handleUrlAdd} disabled={!urlInput.trim()}>
-                Add URL
-              </Button>
-            </div>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="video/*"
-            multiple
-            onChange={handleFileUpload}
-            className="hidden"
+        
+        <div className="flex flex-1 gap-2">
+          <Input
+            placeholder="Video URL..."
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleUrlAdd()}
           />
-
-          {/* Video Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
-            <AnimatePresence>
-              {videoLibrary.map((item) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="relative group bg-card rounded-lg p-2 border border-border hover:border-primary/50 transition-all"
-                >
-                  {/* Thumbnail */}
-                  <div className="aspect-video bg-muted rounded mb-2 overflow-hidden relative">
-                    {item.thumbnail ? (
-                      <img 
-                        src={item.thumbnail} 
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        {item.isUploading ? (
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
-                        ) : (
-                          <Play className="w-6 h-6 text-muted-foreground" />
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Overlay Controls */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => {
-                          onSelectVideo(item.url);
-                          setIsOpen(false);
-                        }}
-                      >
-                        <Play className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => removeVideoFromLibrary(item.id)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium truncate">{item.name}</p>
-                    {item.resolution && (
-                      <p className="text-xs text-muted-foreground">{item.resolution}</p>
-                    )}
-                    {item.duration && (
-                      <p className="text-xs text-muted-foreground">
-                        {Math.floor(item.duration / 60)}:{Math.floor(item.duration % 60).toString().padStart(2, '0')}
-                      </p>
-                    )}
-                    {item.error && (
-                      <p className="text-xs text-destructive">{item.error}</p>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-
-          {videoLibrary.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Upload className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No videos in library. Upload files or add URLs to get started.</p>
-            </div>
-          )}
+          <Button onClick={handleUrlAdd} disabled={!urlInput.trim()}>
+            Add URL
+          </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="video/*"
+        multiple
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
+      {/* Video Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
+        <AnimatePresence>
+          {videoLibrary.map((item) => (
+            <motion.div
+              key={item.id}
+              layout
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="relative group bg-card rounded-lg p-2 border border-border hover:border-primary/50 transition-all"
+            >
+              {/* Thumbnail */}
+              <div className="aspect-video bg-muted rounded mb-2 overflow-hidden relative">
+                {item.thumbnail ? (
+                  <img 
+                    src={item.thumbnail} 
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    {item.isUploading ? (
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                    ) : (
+                      <Play className="w-6 h-6 text-muted-foreground" />
+                    )}
+                  </div>
+                )}
+                
+                {/* Overlay Controls */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => onSelectVideo(item.url)}
+                  >
+                    <Play className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => removeVideoFromLibrary(item.id)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="space-y-1">
+                <p className="text-xs font-medium truncate">{item.name}</p>
+                {item.resolution && (
+                  <p className="text-xs text-muted-foreground">{item.resolution}</p>
+                )}
+                {item.duration && (
+                  <p className="text-xs text-muted-foreground">
+                    {Math.floor(item.duration / 60)}:{Math.floor(item.duration % 60).toString().padStart(2, '0')}
+                  </p>
+                )}
+                {item.error && (
+                  <p className="text-xs text-destructive">{item.error}</p>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {videoLibrary.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          <Upload className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>No videos in library. Upload files or add URLs to get started.</p>
+        </div>
+      )}
+    </div>
   );
 };
