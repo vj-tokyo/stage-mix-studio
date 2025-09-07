@@ -1,15 +1,11 @@
 import { motion } from 'framer-motion';
-import { Mic, Square } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useMixerStore } from '@/store/mixerStore';
 
 export const MasterFader: React.FC = () => {
   const { 
     masterFader, 
-    isRecording, 
-    updateMasterFader, 
-    toggleRecording 
+    updateMasterFader 
   } = useMixerStore();
 
   const handleFaderChange = (values: number[]) => {
@@ -83,43 +79,6 @@ export const MasterFader: React.FC = () => {
             </span>
           </div>
         </div>
-      </div>
-
-
-      {/* Recording Control */}
-      <div className="flex flex-col items-center space-y-2">
-        <Button
-          variant={isRecording ? "destructive" : "outline"}
-          size="lg"
-          onClick={toggleRecording}
-          className={`${
-            isRecording 
-              ? 'animate-pulse' 
-              : ''
-          } flex items-center gap-2 font-bold`}
-        >
-          {isRecording ? (
-            <>
-              <Square className="w-4 h-4" />
-              STOP REC
-            </>
-          ) : (
-            <>
-              <Mic className="w-4 h-4" />
-              RECORD
-            </>
-          )}
-        </Button>
-        
-        {isRecording && (
-          <motion.div 
-            className="text-xs text-destructive font-mono"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ repeat: Infinity, duration: 1 }}
-          >
-            ● REC
-          </motion.div>
-        )}
       </div>
     </motion.div>
   );
