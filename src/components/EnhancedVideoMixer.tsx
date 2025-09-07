@@ -79,7 +79,7 @@ export const EnhancedVideoMixer: React.FC = () => {
               </div>
               
               {/* Main Preview Canvas */}
-              <div className="flex-1 min-h-0 max-h-96 mb-4">
+              <div className="aspect-video mb-4">
                 <VideoCanvas />
               </div>
               
