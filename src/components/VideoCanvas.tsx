@@ -6,7 +6,7 @@ import { useMixerStore, VideoLayer, BlendMode } from "@/store/mixerStore";
 interface VideoPlaneProps {
   layer: VideoLayer;
   channelMix: number;
-  channelId: 'A' | 'B';
+  channelId: "A" | "B";
   position: [number, number, number];
 }
 
@@ -105,11 +105,13 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     // Set video duration in store when loaded
     const handleLoadedMetadata = () => {
       if (video.duration && video.duration !== layer.duration) {
-        useMixerStore.getState().updateLayerDuration(channelId, layer.id, video.duration);
+        useMixerStore
+          .getState()
+          .updateLayerDuration(channelId, layer.id, video.duration);
       }
     };
 
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
 
     // Force video to load
     video.load();
@@ -127,30 +129,30 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     textureRef.current = texture;
 
     return () => {
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.pause();
-      video.src = '';
+      video.src = "";
       texture.dispose();
     };
-  }, [layer.videoSrc]);
+  }, [layer.videoSrc, channelId, layer.duration, layer.id, layer.isPlaying]);
 
   // Update playback state and sync current time
   useEffect(() => {
     if (!videoRef.current) return;
 
     const video = videoRef.current;
-    
+
     // Set video time to match layer
     if (Math.abs(video.currentTime - layer.currentTime) > 0.1) {
       video.currentTime = layer.currentTime;
     }
-    
+
     // Set playback speed
     video.playbackRate = layer.playbackSpeed;
-    
+
     // Handle volume
     video.volume = layer.volume;
-    
+
     // Handle looping
     if (layer.isLooping) {
       video.loop = false; // Handle manually for custom loop points
@@ -163,30 +165,36 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     } else {
       video.pause();
     }
-  }, [layer.isPlaying, layer.currentTime, layer.playbackSpeed, layer.volume, layer.isLooping]);
+  }, [
+    layer.isPlaying,
+    layer.currentTime,
+    layer.playbackSpeed,
+    layer.volume,
+    layer.isLooping,
+  ]);
 
   // Handle custom loop points
   useEffect(() => {
     if (!videoRef.current || !layer.isLooping) return;
-    
+
     const video = videoRef.current;
     const handleTimeUpdate = () => {
       if (video.currentTime >= layer.loopOutPoint) {
         video.currentTime = layer.loopInPoint;
       }
     };
-    
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    return () => video.removeEventListener('timeupdate', handleTimeUpdate);
+
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    return () => video.removeEventListener("timeupdate", handleTimeUpdate);
   }, [layer.isLooping, layer.loopInPoint, layer.loopOutPoint]);
 
   // Sync video time back to store (for timeline display)
   useFrame(() => {
     if (!videoRef.current) return;
-    
+
     const video = videoRef.current;
     const { updateLayerTime } = useMixerStore.getState();
-    
+
     if (layer.isPlaying) {
       // Update store with current video time for timeline sync
       const timeDiff = Math.abs(video.currentTime - layer.currentTime);
@@ -199,7 +207,10 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
   // Create material with proper blend mode
   const material = useMemo(() => {
     if (!textureRef.current) {
-      const fallbackOpacity = Math.min(1, Math.max(0, layer.opacity * channelMix));
+      const fallbackOpacity = Math.min(
+        1,
+        Math.max(0, layer.opacity * channelMix)
+      );
       return new THREE.MeshBasicMaterial({
         color: 0x333333,
         transparent: true,
@@ -222,7 +233,7 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
     layer.opacity,
     layer.blendMode,
     channelMix,
-    textureRef.current, // Include texture in dependencies
+    //textureRef.current, // Include texture in dependencies
   ]);
 
   // Update material when it changes
@@ -248,11 +259,12 @@ const Scene: React.FC = () => {
 
   // Simple crossfade logic: 0 = all A, 1 = all B
   const channelAMix = 1 - masterFader; // A fades out as fader moves to B
-  const channelBMix = masterFader;     // B fades in as fader moves to B
+  const channelBMix = masterFader; // B fades in as fader moves to B
 
   // Check if we have any video content
-  const hasVideoContent = channels.A.layers.some(layer => layer.videoSrc && layer.opacity > 0) || 
-                          channels.B.layers.some(layer => layer.videoSrc && layer.opacity > 0);
+  const hasVideoContent =
+    channels.A.layers.some((layer) => layer.videoSrc && layer.opacity > 0) ||
+    channels.B.layers.some((layer) => layer.videoSrc && layer.opacity > 0);
 
   return (
     <>
@@ -275,11 +287,13 @@ const Scene: React.FC = () => {
           <planeGeometry args={[2, 0.1]} />
           <meshBasicMaterial color={0x666666} transparent opacity={0.3} />
         </mesh>
-        
+
         {/* Corner markers */}
         {[
-          [-1.8, 1, 0.001], [1.8, 1, 0.001], 
-          [-1.8, -1, 0.001], [1.8, -1, 0.001]
+          [-1.8, 1, 0.001],
+          [1.8, 1, 0.001],
+          [-1.8, -1, 0.001],
+          [1.8, -1, 0.001],
         ].map((position, index) => (
           <mesh key={index} position={position as [number, number, number]}>
             <planeGeometry args={[0.2, 0.2]} />
