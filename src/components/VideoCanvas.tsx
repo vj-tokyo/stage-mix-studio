@@ -19,7 +19,9 @@ const createBlendMaterial = (
   const material = new THREE.MeshBasicMaterial({
     map: texture,
     transparent: true,
-    opacity: opacity,
+    opacity,
+    depthWrite: false,
+    side: THREE.DoubleSide,
   });
 
   // Apply correct Three.js blending modes
@@ -197,15 +199,18 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
   // Create material with proper blend mode
   const material = useMemo(() => {
     if (!textureRef.current) {
+      const fallbackOpacity = Math.min(1, Math.max(0, layer.opacity * channelMix));
       return new THREE.MeshBasicMaterial({
         color: 0x333333,
         transparent: true,
-        opacity: Math.max(0.1, layer.opacity * channelMix),
+        opacity: fallbackOpacity,
+        depthWrite: false,
+        side: THREE.DoubleSide,
       });
     }
 
-    // Calculate final opacity correctly - ensure visibility
-    let finalOpacity = Math.max(0.1, layer.opacity * channelMix);
+    // Calculate final opacity without floor; 0 means fully hidden
+    const finalOpacity = Math.min(1, Math.max(0, layer.opacity * channelMix));
 
     // Create material with proper blend mode
     return createBlendMaterial(
@@ -228,12 +233,7 @@ const VideoPlane: React.FC<VideoPlaneProps> = ({
   }, [material]);
 
   if (!layer.videoSrc) {
-    return (
-      <mesh ref={meshRef} position={position}>
-        <planeGeometry args={[4, 2.25]} />
-        <meshBasicMaterial color={0x111111} transparent opacity={0.3} />
-      </mesh>
-    );
+    return null;
   }
 
   return (
@@ -337,11 +337,6 @@ export const VideoCanvas: React.FC = () => {
       >
         <Scene />
       </Canvas>
-      
-      {/* Fallback overlay for better visibility */}
-      <div className="absolute top-4 left-4 text-xs text-muted-foreground bg-black/50 px-2 py-1 rounded">
-        Main Output Canvas
-      </div>
     </div>
   );
 };
